@@ -34,6 +34,164 @@ def display_picture(df, index):
     cv2.waitKey(0)  
     cv2.destroyAllWindows()  
 
+def x_point(value, list_pos_x):
+    return np.round(list_pos_x[value]).astype('int')
+
+def y_point(value, list_pos_y):
+    return np.round(list_pos_y[value]).astype('int')
+
+def label_name(label):
+    label_list = ['neutre', 'colere', 'N.A', 'degout', 'peur', 'joie', 'tristesse', 'surprise']
+    return label_list[label]
+
+def left_eyebrow(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped left eyebrow
+    '''
+    # departure point
+    x = x_point(17, list_pos_x)
+    y = y_point(20, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(27, list_pos_x) - x_point(17, list_pos_x))
+    height = max([
+        abs(x_point(20, list_pos_x) - x_point(19, list_pos_x)),
+        abs(y_point(19, list_pos_y) - y_point(17, list_pos_y))
+    ])
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    #cv2.imshow("left eyebrow: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #cv2.destroyAllWindows()  
+    return crop_img
+
+def right_eyebrow(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped right eyebrow
+    '''
+    # departure point
+    x = x_point(27, list_pos_x)
+    y = y_point(23, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(27, list_pos_x) - x_point(26, list_pos_x))
+    height = max([
+        abs(x_point(23, list_pos_x) - x_point(22, list_pos_x)),
+        abs(y_point(23, list_pos_y) - y_point(26, list_pos_y))
+    ])
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    #cv2.imshow("right eyebrow: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #cv2.destroyAllWindows()  
+    return crop_img
+
+def between_eyebrow(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped between eyebrow
+    '''
+    # departure point
+    x = x_point(21, list_pos_x)
+    y = min([y_point(21, list_pos_y), y_point(22, list_pos_y)])
+
+    # length and height specification
+    length = abs(x_point(22, list_pos_x) - x_point(21, list_pos_x))
+    height = abs(y_point(29, list_pos_y) - y_point(28, list_pos_y))
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    #cv2.imshow("right eyebrow: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #cv2.destroyAllWindows()  
+    return crop_img
+
+def left_eye(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped left eye
+    '''
+    # departure point
+    x = x_point(36, list_pos_x)
+    y = y_point(38, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(39, list_pos_x) - x_point(36, list_pos_x))
+    height = abs(y_point(40, list_pos_y) - y_point(38, list_pos_y))
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    #cv2.imshow("left eye: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #cv2.destroyAllWindows()  
+    return crop_img
+
+def right_eye(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped right eye
+    '''
+    # departure point
+    x = x_point(42, list_pos_x)
+    y = y_point(43, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(45, list_pos_x) - x_point(42, list_pos_x))
+    height = abs(y_point(47, list_pos_y) - y_point(43, list_pos_y))
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    #cv2.imshow("right eye: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #cv2.destroyAllWindows()  
+    return crop_img
+
+def nose(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped nose
+    '''
+    # departure point
+    x = x_point(31, list_pos_x)
+    y = y_point(28, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(35, list_pos_x) - x_point(31, list_pos_x))
+    height = abs(y_point(28, list_pos_y) - y_point(33, list_pos_y))
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    #cv2.imshow("nose: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #cv2.destroyAllWindows()  
+    return crop_img
+
+def mouth(img, list_pos_x, list_pos_y, label):
+    '''
+    return cropped mouth
+    '''
+    # departure point
+    x = x_point(41, list_pos_x)
+    y = min([
+        y_point(48, list_pos_y), 
+        y_point(51, list_pos_y), 
+        y_point(54, list_pos_y)
+    ])
+
+    # length and height specification
+    length = abs(x_point(46, list_pos_x) - x_point(41, list_pos_x))
+    height = abs(
+        max([
+            y_point(48, list_pos_y),
+            y_point(54, list_pos_y),
+            y_point(57, list_pos_y)
+        ]) -
+        min([
+            y_point(48, list_pos_y),
+            y_point(51, list_pos_y),
+            y_point(54, list_pos_y)
+        ])
+    )
+
+    crop_img = img[y:y+height, x:x+length].copy()
+    cv2.imshow("mouth: " + label_name(label), crop_img)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return crop_img
+
+
 def roi_extraction(df, index):
     '''
     extract chosen roi
@@ -45,24 +203,22 @@ def roi_extraction(df, index):
     [image 0]: 4 #label
     '''   
     img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
-    pos_x = df.iloc[index, 1:69] # [0->67] 
-    pos_y = df.iloc[index, 69:137]
+    list_pos_x = df.iloc[index, 1:69] # [0->67] 
+    list_pos_y = df.iloc[index, 69:137]
     label = df.iloc[index, 137]
-    chosen_roi = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] # choose points here
-
-    image_data = [] # ROI extracted for the current image 64x64 images
-    for i in chosen_roi:
-        y = np.round(pos_y[chosen_roi[i]]).astype('int')
-        x = np.round(pos_x[chosen_roi[i]]).astype('int')
-        crop_img = img[y-32:y+32, x-32:x+32].copy() # (y, x) and not (x, y)
-        cv2.imshow("landmark "+str(i), crop_img)
-        cv2.waitKey(0)  
-        cv2.destroyAllWindows()  
+    
+    ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label)
+    ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label)
+    ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label)
+    ROI_4 = left_eye(img, list_pos_x, list_pos_y, label)
+    ROI_5 = right_eye(img, list_pos_x, list_pos_y, label)
+    ROI_6 = nose(img, list_pos_x, list_pos_y, label)
+    ROI_7 = mouth(img, list_pos_x, list_pos_y, label)
 
 def read_data():
     df = pd.read_csv('../Dataset/trainset/trainset.csv', encoding='utf-8')
-    display_picture(df, 715)
-    roi_extraction(df, 715)
+    #display_picture(df, 5)
+    roi_extraction(df, 700)
     
 def feature_extraction():
     read_data()
