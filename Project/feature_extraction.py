@@ -59,11 +59,52 @@ def left_eyebrow(img, list_pos_x, list_pos_y, label):
         abs(y_point(19, list_pos_y) - y_point(17, list_pos_y))
     ])
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("left eyebrow: " + label_name(label), crop_img)
+    crop = img[y:y+height, x:x+length].copy()
+    print(np.mean(crop))
+
+    #cv2.imshow("left eyebrow: " + label_name(label), crop)
     #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
-    return crop_img
+
+    blur = cv2.medianBlur(crop, 5)
+    #cv2.imshow("left eyebrow blur 5x5: " + label_name(label), blur)
+    #cv2.waitKey(0)
+
+    gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY) 
+
+    negative = cv2.bitwise_not(gray)
+    #cv2.imshow("left eyebrow negative: " + label_name(label), negative)
+    #cv2.waitKey(0)
+
+    kernel = np.ones((5, 5), np.uint8)
+    morphological_opening = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
+    #cv2.imshow("left eyebrow morph. opening: " + label_name(label), morphological_opening)
+    #cv2.waitKey(0)
+    
+    substraction = cv2.subtract(negative, morphological_opening)
+    #cv2.imshow("left eyebrow substraction: " + label_name(label), substraction)
+    #cv2.waitKey(0)
+
+    # normalisation 
+    #normalisation = cv2.normalize(substraction, substraction, 0, 255, cv2.NORM_MINMAX)
+    #cv2.imshow("left eyebrow normalisation: " + label_name(label), normalisation)
+    #cv2.waitKey(0)
+
+    _, otsu_threshold = cv2.threshold(substraction, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    #print(_)
+    #cv2.imshow("left eyebrow Otsu threshold: " + label_name(label), otsu_threshold)
+    #cv2.waitKey(0)
+
+    kernel = np.ones((3, 3), np.uint8)
+    dilatation = cv2.dilate(otsu_threshold, kernel, iterations = 1)
+    #cv2.imshow("left eyebrow dilatation: " + label_name(label), dilatation)
+    #cv2.waitKey(0)
+
+    blur_2 = cv2.medianBlur(dilatation, 3)
+    cv2.imshow("left eyebrow blur 3x3: " + label_name(label), blur_2)
+    cv2.waitKey(0)
+
+    cv2.destroyAllWindows()  
+    return blur_2
 
 def right_eyebrow(img, list_pos_x, list_pos_y, label):
     '''
@@ -80,11 +121,50 @@ def right_eyebrow(img, list_pos_x, list_pos_y, label):
         abs(y_point(23, list_pos_y) - y_point(26, list_pos_y))
     ])
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("right eyebrow: " + label_name(label), crop_img)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
-    return crop_img
+    crop = img[y:y+height, x:x+length].copy()
+    
+    print(np.mean(crop))
+
+    blur = cv2.medianBlur(crop, 5)
+    #cv2.imshow("right eyebrow blur 5x5: " + label_name(label), blur)
+    #cv2.waitKey(0)
+
+    gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY) 
+
+    negative = cv2.bitwise_not(gray)
+    #cv2.imshow("right eyebrow negative: " + label_name(label), negative)
+    #cv2.waitKey(0)
+
+    kernel = np.ones((5, 5), np.uint8)
+    morphological_opening = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
+    #cv2.imshow("right eyebrow morph. opening: " + label_name(label), morphological_opening)
+    #cv2.waitKey(0)
+    
+    substraction = cv2.subtract(negative, morphological_opening)
+    #cv2.imshow("right eyebrow substraction: " + label_name(label), substraction)
+    #cv2.waitKey(0)
+
+    # normalisation 
+    #normalisation = cv2.normalize(substraction, substraction, 0, 255, cv2.NORM_MINMAX)
+    #cv2.imshow("right eyebrow normalisation: " + label_name(label), normalisation)
+    #cv2.waitKey(0)
+
+    _, otsu_threshold = cv2.threshold(substraction, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    print(_)
+    #cv2.imshow("right eyebrow Otsu threshold: " + label_name(label), otsu_threshold)
+    #cv2.waitKey(0)
+
+    kernel = np.ones((3, 3), np.uint8)
+    dilatation = cv2.dilate(otsu_threshold, kernel, iterations = 1)
+    #cv2.imshow("right eyebrow dilatation: " + label_name(label), dilatation)
+    #cv2.waitKey(0)
+
+    blur_2 = cv2.medianBlur(dilatation, 3)
+    cv2.imshow("right eyebrow blur 3x3: " + label_name(label), blur_2)
+    cv2.waitKey(0)
+
+    cv2.destroyAllWindows()  
+    return blur_2
 
 def between_eyebrow(img, list_pos_x, list_pos_y, label):
     '''
@@ -186,9 +266,9 @@ def mouth(img, list_pos_x, list_pos_y, label):
     )
 
     crop_img = img[y:y+height, x:x+length].copy()
-    cv2.imshow("mouth: " + label_name(label), crop_img)
-    cv2.waitKey(0)  
-    cv2.destroyAllWindows()  
+    #cv2.imshow("mouth: " + label_name(label), crop_img)
+    #cv2.waitKey(0)  
+    #v2.destroyAllWindows()  
     return crop_img
 
 
@@ -203,6 +283,12 @@ def roi_extraction(df, index):
     [image 0]: 4 #label
     '''   
     img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
+
+    # convert RGB to grayscale image to keep 1 channel
+    cv2.imshow("image: ", img)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+
     list_pos_x = df.iloc[index, 1:69] # [0->67] 
     list_pos_y = df.iloc[index, 69:137]
     label = df.iloc[index, 137]
@@ -215,10 +301,19 @@ def roi_extraction(df, index):
     ROI_6 = nose(img, list_pos_x, list_pos_y, label)
     ROI_7 = mouth(img, list_pos_x, list_pos_y, label)
 
+    #print(ROI_1.shape)
+    #print(ROI_2.shape)
+    #print(ROI_3.shape)
+    #print(ROI_4.shape)
+    #print(ROI_5.shape)
+    #print(ROI_6.shape)
+    #print(ROI_7.shape)
+
 def read_data():
     df = pd.read_csv('../Dataset/trainset/trainset.csv', encoding='utf-8')
-    #display_picture(df, 5)
+    #display_picture(df, 636)
     roi_extraction(df, 700)
+    # 300 cache les sourcils
     
 def feature_extraction():
     read_data()
