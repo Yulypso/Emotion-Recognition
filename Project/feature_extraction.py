@@ -44,7 +44,7 @@ def label_name(label):
     label_list = ['neutre', 'colere', 'N.A', 'degout', 'peur', 'joie', 'tristesse', 'surprise']
     return label_list[label]
 
-def left_eyebrow(img, list_pos_x, list_pos_y, label):
+def left_eyebrow(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped left eyebrow
     '''
@@ -60,53 +60,24 @@ def left_eyebrow(img, list_pos_x, list_pos_y, label):
     ])
 
     crop = img[y:y+height, x:x+length].copy()
-    print(np.mean(crop))
-
-    #cv2.imshow("left eyebrow: " + label_name(label), crop)
-    #cv2.waitKey(0)  
-
     blur = cv2.medianBlur(crop, 5)
-    #cv2.imshow("left eyebrow blur 5x5: " + label_name(label), blur)
-    #cv2.waitKey(0)
-
     gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY) 
-
     negative = cv2.bitwise_not(gray)
-    #cv2.imshow("left eyebrow negative: " + label_name(label), negative)
-    #cv2.waitKey(0)
-
     kernel = np.ones((5, 5), np.uint8)
     morphological_opening = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
-    #cv2.imshow("left eyebrow morph. opening: " + label_name(label), morphological_opening)
-    #cv2.waitKey(0)
-    
     substraction = cv2.subtract(negative, morphological_opening)
-    #cv2.imshow("left eyebrow substraction: " + label_name(label), substraction)
-    #cv2.waitKey(0)
-
-    # normalisation 
-    #normalisation = cv2.normalize(substraction, substraction, 0, 255, cv2.NORM_MINMAX)
-    #cv2.imshow("left eyebrow normalisation: " + label_name(label), normalisation)
-    #cv2.waitKey(0)
-
     _, otsu_threshold = cv2.threshold(substraction, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    #print(_)
-    #cv2.imshow("left eyebrow Otsu threshold: " + label_name(label), otsu_threshold)
-    #cv2.waitKey(0)
-
     kernel = np.ones((3, 3), np.uint8)
     dilatation = cv2.dilate(otsu_threshold, kernel, iterations = 1)
-    #cv2.imshow("left eyebrow dilatation: " + label_name(label), dilatation)
-    #cv2.waitKey(0)
-
     blur_2 = cv2.medianBlur(dilatation, 3)
-    cv2.imshow("left eyebrow blur 3x3: " + label_name(label), blur_2)
-    cv2.waitKey(0)
+    resized = cv2.resize(blur_2, dim)
 
+    cv2.imshow("left eyebrow: " + label_name(label), blur_2)
+    cv2.waitKey(0)
     cv2.destroyAllWindows()  
     return blur_2
 
-def right_eyebrow(img, list_pos_x, list_pos_y, label):
+def right_eyebrow(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped right eyebrow
     '''
@@ -122,51 +93,24 @@ def right_eyebrow(img, list_pos_x, list_pos_y, label):
     ])
 
     crop = img[y:y+height, x:x+length].copy()
-    
-    print(np.mean(crop))
-
     blur = cv2.medianBlur(crop, 5)
-    #cv2.imshow("right eyebrow blur 5x5: " + label_name(label), blur)
-    #cv2.waitKey(0)
-
     gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY) 
-
     negative = cv2.bitwise_not(gray)
-    #cv2.imshow("right eyebrow negative: " + label_name(label), negative)
-    #cv2.waitKey(0)
-
     kernel = np.ones((5, 5), np.uint8)
     morphological_opening = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
-    #cv2.imshow("right eyebrow morph. opening: " + label_name(label), morphological_opening)
-    #cv2.waitKey(0)
-    
     substraction = cv2.subtract(negative, morphological_opening)
-    #cv2.imshow("right eyebrow substraction: " + label_name(label), substraction)
-    #cv2.waitKey(0)
-
-    # normalisation 
-    #normalisation = cv2.normalize(substraction, substraction, 0, 255, cv2.NORM_MINMAX)
-    #cv2.imshow("right eyebrow normalisation: " + label_name(label), normalisation)
-    #cv2.waitKey(0)
-
     _, otsu_threshold = cv2.threshold(substraction, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    print(_)
-    #cv2.imshow("right eyebrow Otsu threshold: " + label_name(label), otsu_threshold)
-    #cv2.waitKey(0)
-
     kernel = np.ones((3, 3), np.uint8)
     dilatation = cv2.dilate(otsu_threshold, kernel, iterations = 1)
-    #cv2.imshow("right eyebrow dilatation: " + label_name(label), dilatation)
-    #cv2.waitKey(0)
-
     blur_2 = cv2.medianBlur(dilatation, 3)
-    cv2.imshow("right eyebrow blur 3x3: " + label_name(label), blur_2)
+    resized = cv2.resize(blur_2, dim)
+
+    cv2.imshow("right eyebrow: " + label_name(label), resized)
     cv2.waitKey(0)
-
     cv2.destroyAllWindows()  
-    return blur_2
+    return resized
 
-def between_eyebrow(img, list_pos_x, list_pos_y, label):
+def between_eyebrow(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped between eyebrow
     '''
@@ -176,15 +120,20 @@ def between_eyebrow(img, list_pos_x, list_pos_y, label):
 
     # length and height specification
     length = abs(x_point(22, list_pos_x) - x_point(21, list_pos_x))
-    height = abs(y_point(29, list_pos_y) - y_point(28, list_pos_y))
+    height = abs(y_point(29, list_pos_y) - y_point(27, list_pos_y))
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("right eyebrow: " + label_name(label), crop_img)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
-    return crop_img
+    crop = img[y:y+height, x:x+length].copy()
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) 
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    laplacian = cv2.Laplacian(blur, cv2.CV_64F)
+    resized = cv2.resize(laplacian, dim)
 
-def left_eye(img, list_pos_x, list_pos_y, label):
+    cv2.imshow("between eyebrow: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+def left_eye(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped left eye
     '''
@@ -196,13 +145,19 @@ def left_eye(img, list_pos_x, list_pos_y, label):
     length = abs(x_point(39, list_pos_x) - x_point(36, list_pos_x))
     height = abs(y_point(40, list_pos_y) - y_point(38, list_pos_y))
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("left eye: " + label_name(label), crop_img)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
-    return crop_img
+    crop = img[y:y+height, x:x+length].copy()
+    negative = cv2.bitwise_not(crop)
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+    #_, otsu_threshold = cv2.threshold(gray.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
+    
+    resized = cv2.resize(thresh, dim)
+    cv2.imshow("left eye: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
 
-def right_eye(img, list_pos_x, list_pos_y, label):
+def right_eye(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped right eye
     '''
@@ -214,31 +169,215 @@ def right_eye(img, list_pos_x, list_pos_y, label):
     length = abs(x_point(45, list_pos_x) - x_point(42, list_pos_x))
     height = abs(y_point(47, list_pos_y) - y_point(43, list_pos_y))
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("right eye: " + label_name(label), crop_img)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
-    return crop_img
+    crop = img[y:y+height, x:x+length].copy()
+    negative = cv2.bitwise_not(crop)
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+    #_, otsu_threshold = cv2.threshold(gray.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
 
-def nose(img, list_pos_x, list_pos_y, label):
+    resized = cv2.resize(thresh, dim)
+    cv2.imshow("right eye: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+
+def left_eye_area(img, list_pos_x, list_pos_y, label, dim):
+    '''
+    return cropped left eye area
+    '''
+    # departure point
+    x = x_point(36, list_pos_x) - abs(x_point(39, list_pos_x) - x_point(36, list_pos_x))
+    y = y_point(38, list_pos_y)-5
+
+    # length and height specification
+    length = abs(x_point(39, list_pos_x) - x_point(36, list_pos_x))
+    height = abs(y_point(27, list_pos_y) - y_point(29, list_pos_y))
+
+    crop = img[y:y+height, x:x+length].copy()
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) 
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    laplacian = cv2.Laplacian(blur, cv2.CV_64F)
+    blur_2 = cv2.medianBlur(laplacian.astype('uint8'), 3)
+    crop_2 = blur_2[0:int((np.shape(blur_2)[1])/2), 0:np.shape(blur_2)[0]].copy()
+    
+    negative = cv2.bitwise_not(crop_2)
+    resized = cv2.resize(negative, dim)
+
+    cv2.imshow("left eye area: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+def right_eye_area(img, list_pos_x, list_pos_y, label, dim):
+    '''
+    return cropped right eye area
+    '''
+    # departure point
+    x = x_point(45, list_pos_x)
+    y = y_point(43, list_pos_y)-5
+
+    # length and height specification
+    length = abs(x_point(45, list_pos_x) - x_point(42, list_pos_x))
+    height = abs(y_point(27, list_pos_y) - y_point(29, list_pos_y))
+
+    crop = img[y:y+height, x:x+length].copy()
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) 
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    laplacian = cv2.Laplacian(blur, cv2.CV_64F)
+    blur_2 = cv2.medianBlur(laplacian.astype('uint8'), 3)
+    crop_2 = blur_2[0:int((np.shape(blur_2)[1])/2), 0:np.shape(blur_2)[0]].copy()
+    
+    negative = cv2.bitwise_not(crop_2)
+    resized = cv2.resize(negative, dim)
+    
+    cv2.imshow("right eye area: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+def nose(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped nose
     '''
     # departure point
-    x = x_point(31, list_pos_x)
+    x = x_point(31, list_pos_x)-5
     y = y_point(28, list_pos_y)
 
     # length and height specification
-    length = abs(x_point(35, list_pos_x) - x_point(31, list_pos_x))
-    height = abs(y_point(28, list_pos_y) - y_point(33, list_pos_y))
+    length = abs(x_point(35, list_pos_x) - x_point(31, list_pos_x))+5
+    height = abs(y_point(28, list_pos_y) - y_point(33, list_pos_y))+5
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("nose: " + label_name(label), crop_img)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
-    return crop_img
+    crop = img[y:y+height, x:x+length].copy()
 
-def mouth(img, list_pos_x, list_pos_y, label):
+    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
+    clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
+    lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)  # convert from BGR to LAB color space
+    l, a, b = cv2.split(lab)  # split on 3 different channels
+    l2 = clahe.apply(l)  # apply CLAHE to the L-channel
+    lab = cv2.merge((l2,a,b))  # merge channels
+    contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB to BGR
+
+    gray = cv2.cvtColor(contrast, cv2.COLOR_RGB2GRAY) 
+
+    resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
+    resized_2 = cv2.resize(resized, dim, interpolation=cv2.INTER_CUBIC)
+
+
+    kernel = np.ones((3,3),np.uint8)
+    erosion = cv2.erode(resized_2,kernel,iterations = 1)
+
+    blur = cv2.medianBlur(erosion.astype('uint8'), 5)
+    _, otsu_threshold = cv2.threshold(blur.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    negative = cv2.bitwise_not(otsu_threshold)
+
+    dilation = cv2.dilate(resized_2,kernel,iterations = 1)
+
+    # convert nostrils
+    #blur_2 = cv2.GaussianBlur(dilation, (5, 5), 0)
+    #laplacian = cv2.Laplacian(blur_2, cv2.CV_64F)
+    #blur_3 = cv2.medianBlur(laplacian.astype('uint8'), 3)
+    #_, otsu_threshold = cv2.threshold(blur_3.astype('uint8'), 0, 255, cv2.THRESH_OTSU)
+    
+    #kernel = np.ones((2,2),np.uint8)
+    #opening = cv2.morphologyEx(otsu_threshold, cv2.MORPH_OPEN, kernel)
+    #closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
+
+
+    cv2.imshow("nose: " + label_name(label), dilation)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return dilation
+
+def nose_left(img, list_pos_x, list_pos_y, label, dim):
+    # departure point
+    x = x_point(41, list_pos_x)
+    y = y_point(29, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(41, list_pos_x) - x_point(29, list_pos_x))
+    height = abs(y_point(27, list_pos_y) - y_point(30, list_pos_y))
+
+    crop = img[y:y+height, x:x+length].copy()
+
+    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
+    #clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
+    #lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)  # convert from BGR to LAB color space
+    #l, a, b = cv2.split(lab)  # split on 3 different channels
+    #l2 = clahe.apply(l)  # apply CLAHE to the L-channel
+    #lab = cv2.merge((l2,a,b))  # merge channels
+    #contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB to BGR
+
+    #gray = cv2.cvtColor(contrast, cv2.COLOR_RGB2GRAY) 
+
+    #resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
+    #resized_2 = cv2.resize(resized, dim, interpolation=cv2.INTER_CUBIC)
+
+    #kernel = np.ones((3,3),np.uint8)
+    #erosion = cv2.erode(gray,kernel,iterations = 1) #resized2
+
+    #blur = cv2.medianBlur(erosion.astype('uint8'), 5)
+    #dilation = cv2.dilate(blur,kernel,iterations = 1) 
+
+    gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY) 
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    blur = cv2.medianBlur(opening.astype('uint8'), 5)
+    negative = cv2.bitwise_not(blur)
+    resized = cv2.resize(negative, dim)
+
+    cv2.imshow("nose left: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+def nose_right(img, list_pos_x, list_pos_y, label, dim):
+    # departure point
+    x = x_point(29, list_pos_x)
+    y = y_point(29, list_pos_y)
+
+    # length and height specification
+    length = abs(x_point(41, list_pos_x) - x_point(29, list_pos_x))
+    height = abs(y_point(27, list_pos_y) - y_point(30, list_pos_y))
+
+    crop = img[y:y+height, x:x+length].copy()
+
+    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
+    #clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
+    #lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)  # convert from BGR to LAB color space
+    #l, a, b = cv2.split(lab)  # split on 3 different channels
+    #l2 = clahe.apply(l)  # apply CLAHE to the L-channel
+    #lab = cv2.merge((l2,a,b))  # merge channels
+    #contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB to BGR
+
+    #gray = cv2.cvtColor(contrast, cv2.COLOR_RGB2GRAY) 
+
+    #resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
+    #resized_2 = cv2.resize(resized, dim, interpolation=cv2.INTER_CUBIC)
+
+    #kernel = np.ones((3,3),np.uint8)
+    #erosion = cv2.erode(resized_2,kernel,iterations = 1) #resized2
+
+    #blur = cv2.medianBlur(erosion.astype('uint8'), 5)
+    #dilation = cv2.dilate(blur,kernel,iterations = 1) 
+
+    gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY) 
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    blur = cv2.medianBlur(opening.astype('uint8'), 5)
+    negative = cv2.bitwise_not(blur)
+    resized = cv2.resize(negative, dim)
+
+    cv2.imshow("nose right: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+def mouth(img, list_pos_x, list_pos_y, label, dim):
     '''
     return cropped mouth
     '''
@@ -248,7 +387,7 @@ def mouth(img, list_pos_x, list_pos_y, label):
         y_point(48, list_pos_y), 
         y_point(51, list_pos_y), 
         y_point(54, list_pos_y)
-    ])
+    ])-5
 
     # length and height specification
     length = abs(x_point(46, list_pos_x) - x_point(41, list_pos_x))
@@ -263,14 +402,50 @@ def mouth(img, list_pos_x, list_pos_y, label):
             y_point(51, list_pos_y),
             y_point(54, list_pos_y)
         ])
-    )
+    )+15
 
-    crop_img = img[y:y+height, x:x+length].copy()
-    #cv2.imshow("mouth: " + label_name(label), crop_img)
-    #cv2.waitKey(0)  
-    #v2.destroyAllWindows()  
-    return crop_img
+    crop = img[y:y+height, x:x+length].copy()
+    gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY) 
+    blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    blur = cv2.medianBlur(opening.astype('uint8'), 5)
+    negative = cv2.bitwise_not(blur)
+    resized = cv2.resize(negative, dim)
 
+    cv2.imshow("mouth: " + label_name(label), resized)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
+    return resized
+
+def resize_ROI(img, df):
+    list_ROI = []
+
+    for index in range(len(df)):
+        list_pos_x = df.iloc[index, 1:69] # [0->67] 
+        list_pos_y = df.iloc[index, 69:137]
+        label = df.iloc[index, 137]
+    
+        #ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label)
+        #ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label)
+        #ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label)
+        #ROI_4 = left_eye(img, list_pos_x, list_pos_y, label)
+        #ROI_5 = right_eye(img, list_pos_x, list_pos_y, label)
+        #ROI_6 = nose(img, list_pos_x, list_pos_y, label)
+        ROI_7 = mouth(img, list_pos_x, list_pos_y, label)
+        list_ROI.append(ROI_7)
+    
+    lengths = []
+    widths = []
+
+    for i in range(len(df)):
+        widths.append(len(list_ROI[i])) #largeur
+        lengths.append(len(list_ROI[i][1])) #longueur
+    mean_width = np.mean(widths)
+    mean_length = np.mean(lengths)
+    print("mean width : ", mean_width)
+    print("mean length : ", mean_length)
 
 def roi_extraction(df, index):
     '''
@@ -284,22 +459,26 @@ def roi_extraction(df, index):
     '''   
     img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
 
-    # convert RGB to grayscale image to keep 1 channel
-    cv2.imshow("image: ", img)
-    cv2.waitKey(0)  
-    cv2.destroyAllWindows()  
-
     list_pos_x = df.iloc[index, 1:69] # [0->67] 
     list_pos_y = df.iloc[index, 69:137]
-    label = df.iloc[index, 137]
+    label = df.iloc[index, 137]    
+
+    cv2.imshow(df['filename'][index] + ' ' + label_name(label), img)
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()  
     
-    ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label)
-    ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label)
-    ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label)
-    ROI_4 = left_eye(img, list_pos_x, list_pos_y, label)
-    ROI_5 = right_eye(img, list_pos_x, list_pos_y, label)
-    ROI_6 = nose(img, list_pos_x, list_pos_y, label)
-    ROI_7 = mouth(img, list_pos_x, list_pos_y, label)
+    ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20))
+    ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20))
+    ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label, (44, 30))
+    ROI_4 = left_eye(img, list_pos_x, list_pos_y, label, (40, 12))
+    ROI_5 = right_eye(img, list_pos_x, list_pos_y, label, (40, 12))
+    ROI_6 = right_eye_area(img, list_pos_x, list_pos_y, label, (40, 23))
+    ROI_7 = left_eye_area(img, list_pos_x, list_pos_y, label, (40, 23))
+    ROI_8 = nose(img, list_pos_x, list_pos_y, label, (46, 60))
+    ROI_9 = nose_left(img, list_pos_x, list_pos_y, label, (63, 67))
+    ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (63, 67))
+    ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50))
+
 
     #print(ROI_1.shape)
     #print(ROI_2.shape)
@@ -311,9 +490,19 @@ def roi_extraction(df, index):
 
 def read_data():
     df = pd.read_csv('../Dataset/trainset/trainset.csv', encoding='utf-8')
-    #display_picture(df, 636)
-    roi_extraction(df, 700)
-    # 300 cache les sourcils
+    value = 192
+    display_picture(df, value)
+    roi_extraction(df, value) 
+    #12 surprise
+    #16 fear
+    #17 neutral 213 184
+    #20 degout
+    #18 angry 28 angry
+    #22 happy 31 71 183
+    # 300 cache les sourcils 213 cache coin oeil
+
+    # for the best image, equalize hist with it
+    # gray_img_eqhist=cv2.equalizeHist(gray_img)
     
 def feature_extraction():
     read_data()
