@@ -501,12 +501,12 @@ def roi_extraction(df, index=-1, file_name='', nb_examples=0):
 
     else:
         with open('../Dataset/'+file_name, 'w', newline='') as file:
-            print('feature extractions...')
+            print('feature extraction...')
             writer = csv.writer(file, delimiter=',')
             row_list = []
             for index in range(0, nb_examples): # 722
                 if file_name == 'train_data.csv':
-                    if index not in [4, 51, 52, 97, 98, 99, 100, 101, 102, 103, 104, 105, 206, 207, 208, 209, 210, 211, 212, 213, 214, 340, 341, 342, 343, 344]:
+                    if index not in [4, 51, 52, 206, 207, 208, 209, 210, 211, 212, 213, 214, 340, 341, 342, 343, 344]:
                         # excluded image list (#17)
                         # 4: landmarks not appropriated
                         # 51, 52: hair on face

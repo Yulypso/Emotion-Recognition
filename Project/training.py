@@ -69,7 +69,7 @@ def save_pickle(model, file_name):
 
 
 def f_svm(data, label):
-    X_train, X_test, y_train, y_test = train_test_split(data, label, train_size=0.7, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(data, label, train_size=0.7, random_state=2) 
     clf = svm.SVC(kernel='linear')
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
