@@ -16,6 +16,10 @@ from sklearn.neighbors import KNeighborsClassifier
 import matplotlib.image as mpimg
 import timeit
 
+def label_name(label):
+    label_list = ['neutral', 'angry', 'N.A', 'disgust', 'fear', 'joy', 'sadness', 'surprise']
+    return label_list[label]
+
 def display_roi(img, df, index):
     pos_x = df.iloc[index, 1:69] # [0->67] 
     pos_y = df.iloc[index, 69:137]
@@ -27,10 +31,13 @@ def display_roi(img, df, index):
                         color=(255, 255, 255), 
                         thickness=-1)
 
-def display_picture(df, index):
-    img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
+def display_picture(df, index, path):
+    img = cv2.imread(path + df['filename'][index] +'.png') 
     display_roi(img, df, index)
-    cv2.imshow(df['filename'][index]+'   label '+str(df['label'][index]), img)
+    if 'trainset' in path:
+        cv2.imshow(df['filename'][index]+'   label '+str(df['label'][index]), img)
+    elif 'testset' in path:
+        cv2.imshow(df['filename'][index], img)
     cv2.waitKey(0)  
     cv2.destroyAllWindows()  
 
@@ -40,11 +47,7 @@ def x_point(value, list_pos_x):
 def y_point(value, list_pos_y):
     return np.round(list_pos_y[value]).astype('int')
 
-def label_name(label):
-    label_list = ['neutral', 'angry', 'N.A', 'disgust', 'fear', 'joy', 'sadness', 'surprise']
-    return label_list[label]
-
-def left_eyebrow(img, list_pos_x, list_pos_y, label, dim):
+def left_eyebrow(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped left eyebrow
     '''
@@ -72,12 +75,13 @@ def left_eyebrow(img, list_pos_x, list_pos_y, label, dim):
     blur_2 = cv2.medianBlur(dilatation, 3)
     resized = cv2.resize(blur_2, dim)
 
-    #cv2.imshow("left eyebrow: " + label_name(label), blur_2)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("left eyebrow: " + label_name(label), blur_2)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()  
     return resized
 
-def right_eyebrow(img, list_pos_x, list_pos_y, label, dim):
+def right_eyebrow(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped right eyebrow
     '''
@@ -105,12 +109,13 @@ def right_eyebrow(img, list_pos_x, list_pos_y, label, dim):
     blur_2 = cv2.medianBlur(dilatation, 3)
     resized = cv2.resize(blur_2, dim)
 
-    #cv2.imshow("right eyebrow: " + label_name(label), resized)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("right eyebrow: " + label_name(label), resized)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()  
     return resized
 
-def between_eyebrow(img, list_pos_x, list_pos_y, label, dim):
+def between_eyebrow(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped between eyebrow
     '''
@@ -128,12 +133,13 @@ def between_eyebrow(img, list_pos_x, list_pos_y, label, dim):
     laplacian = cv2.Laplacian(blur, cv2.CV_64F)
     resized = cv2.resize(laplacian, dim)
 
-    #cv2.imshow("between eyebrow: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("between eyebrow: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def left_eye(img, list_pos_x, list_pos_y, label, dim):
+def left_eye(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped left eye
     '''
@@ -150,14 +156,15 @@ def left_eye(img, list_pos_x, list_pos_y, label, dim):
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
     #_, otsu_threshold = cv2.threshold(gray.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
-    
     resized = cv2.resize(thresh, dim)
-    #cv2.imshow("left eye: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+
+    if index != -1:
+        cv2.imshow("left eye: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def right_eye(img, list_pos_x, list_pos_y, label, dim):
+def right_eye(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped right eye
     '''
@@ -174,15 +181,16 @@ def right_eye(img, list_pos_x, list_pos_y, label, dim):
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
     #_, otsu_threshold = cv2.threshold(gray.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
-
     resized = cv2.resize(thresh, dim)
-    #cv2.imshow("right eye: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+
+    if index != -1:
+        cv2.imshow("right eye: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
 
-def left_eye_area(img, list_pos_x, list_pos_y, label, dim):
+def left_eye_area(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped left eye area
     '''
@@ -204,12 +212,13 @@ def left_eye_area(img, list_pos_x, list_pos_y, label, dim):
     negative = cv2.bitwise_not(crop_2)
     resized = cv2.resize(negative, dim)
 
-    #cv2.imshow("left eye area: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("left eye area: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def right_eye_area(img, list_pos_x, list_pos_y, label, dim):
+def right_eye_area(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped right eye area
     '''
@@ -231,12 +240,13 @@ def right_eye_area(img, list_pos_x, list_pos_y, label, dim):
     negative = cv2.bitwise_not(crop_2)
     resized = cv2.resize(negative, dim)
     
-    #cv2.imshow("right eye area: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("right eye area: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def nose(img, list_pos_x, list_pos_y, label, dim):
+def nose(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped nose
     '''
@@ -284,13 +294,13 @@ def nose(img, list_pos_x, list_pos_y, label, dim):
     #opening = cv2.morphologyEx(otsu_threshold, cv2.MORPH_OPEN, kernel)
     #closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
 
-
-    #cv2.imshow("nose: " + label_name(label), dilation)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("nose: " + label_name(label), dilation)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def nose_left(img, list_pos_x, list_pos_y, label, dim):
+def nose_left(img, list_pos_x, list_pos_y, label, dim, index):
     # departure point
     x = x_point(41, list_pos_x)
     y = y_point(29, list_pos_y)
@@ -329,12 +339,13 @@ def nose_left(img, list_pos_x, list_pos_y, label, dim):
     negative = cv2.bitwise_not(blur)
     resized = cv2.resize(negative, dim)
 
-    #cv2.imshow("nose left: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("nose left: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def nose_right(img, list_pos_x, list_pos_y, label, dim):
+def nose_right(img, list_pos_x, list_pos_y, label, dim, index):
     # departure point
     x = x_point(29, list_pos_x)
     y = y_point(29, list_pos_y)
@@ -373,12 +384,13 @@ def nose_right(img, list_pos_x, list_pos_y, label, dim):
     negative = cv2.bitwise_not(blur)
     resized = cv2.resize(negative, dim)
 
-    #cv2.imshow("nose right: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("nose right: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
-def mouth(img, list_pos_x, list_pos_y, label, dim):
+def mouth(img, list_pos_x, list_pos_y, label, dim, index):
     '''
     return cropped mouth
     '''
@@ -415,9 +427,10 @@ def mouth(img, list_pos_x, list_pos_y, label, dim):
     negative = cv2.bitwise_not(blur)
     resized = cv2.resize(negative, dim)
 
-    #cv2.imshow("mouth: " + label_name(label), resized)
-    #cv2.waitKey(0)  
-    #cv2.destroyAllWindows()  
+    if index != -1:
+        cv2.imshow("mouth: " + label_name(label), resized)
+        cv2.waitKey(0)  
+        cv2.destroyAllWindows()  
     return resized
 
 def resize_ROI(img, df):
@@ -448,7 +461,7 @@ def resize_ROI(img, df):
     print("mean width : ", mean_width)
     print("mean length : ", mean_length)
 
-def roi_extraction(df, index=0):
+def roi_extraction(df, index=-1, file_name='', nb_examples=0):
     '''
     extract chosen roi
     1. pour chaque ligne (images) 
@@ -459,58 +472,122 @@ def roi_extraction(df, index=0):
     [image 0]: 4 #label
     '''   
 
-    with open('../Dataset/train_data.csv', 'w', newline='') as file:
-        writer = csv.writer(file, delimiter=',')
-        row_list = []
-        for index in range(0, 722): # 722
-            if index not in [4, 51, 52, 206, 207, 208, 209, 210, 211, 212, 213, 214, 340, 341, 342, 343, 344]: 
-                # excluded image list (#17)
-                # 4: landmarks not appropriated
-                # 51, 52: hair on face
-                # 206, 207, 208, 209, 210, 211, 212, 213, 214: hair on face
-                # 340, 341, 342, 343, 344: hair on face
-                img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
+    if index != -1:
+        if file_name == 'train_data.csv':
+            img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
+            print('feature extraction for '+df['filename'][index]+'.png, '+'index: '+str(index))
+            list_pos_x = df.iloc[index, 1:69] 
+            list_pos_y = df.iloc[index, 69:137]
+            label = df.iloc[index, 137]    
+        elif file_name == 'test_data.csv':
+            img = cv2.imread('../Dataset/testset/'+ df['filename'][index] +'.png') 
+            print('feature extraction for '+df['filename'][index]+'.png, '+'index: '+str(index))
+            list_pos_x = df.iloc[index, 1:69] 
+            list_pos_y = df.iloc[index, 69:137]
+            label = 0
+     
+        
+        ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), index)
+        ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), index)
+        ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label, (44, 30), index)
+        ROI_4 = left_eye(img, list_pos_x, list_pos_y, label, (40, 12), index)
+        ROI_5 = right_eye(img, list_pos_x, list_pos_y, label, (40, 12), index)
+        ROI_6 = right_eye_area(img, list_pos_x, list_pos_y, label, (40, 24), index)
+        ROI_7 = left_eye_area(img, list_pos_x, list_pos_y, label, (40, 24), index)
+        ROI_8 = nose(img, list_pos_x, list_pos_y, label, (46, 60), index)
+        ROI_9 = nose_left(img, list_pos_x, list_pos_y, label, (62, 68), index)
+        ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (62, 68), index)
+        ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50), index)
 
-                list_pos_x = df.iloc[index, 1:69] # [0->67] 
-                list_pos_y = df.iloc[index, 69:137]
-                label = df.iloc[index, 137]    
+    else:
+        with open('../Dataset/'+file_name, 'w', newline='') as file:
+            print('feature extractions...')
+            writer = csv.writer(file, delimiter=',')
+            row_list = []
+            for index in range(0, nb_examples): # 722
+                if file_name == 'train_data.csv':
+                    if index not in [4, 51, 52, 97, 98, 99, 100, 101, 102, 103, 104, 105, 206, 207, 208, 209, 210, 211, 212, 213, 214, 340, 341, 342, 343, 344]:
+                        # excluded image list (#17)
+                        # 4: landmarks not appropriated
+                        # 51, 52: hair on face
+                        # 97, 98, 99, 100, 101, 102, 103, 104, 105
+                        # 206, 207, 208, 209, 210, 211, 212, 213, 214: hair on face
+                        # 340, 341, 342, 343, 344: hair on face
+                        img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
+                        list_pos_x = df.iloc[index, 1:69] 
+                        list_pos_y = df.iloc[index, 69:137]
+                        label = df.iloc[index, 137]  
 
-                #cv2.imshow(df['filename'][index] + ' ' + label_name(label), img)
-                #cv2.waitKey(0)  
-                #cv2.destroyAllWindows()  
+                        ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), -1)
+                        ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), -1)
+                        ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label, (44, 30), -1)
+                        ROI_4 = left_eye(img, list_pos_x, list_pos_y, label, (40, 12), -1)
+                        ROI_5 = right_eye(img, list_pos_x, list_pos_y, label, (40, 12), -1)
+                        ROI_6 = right_eye_area(img, list_pos_x, list_pos_y, label, (40, 24), -1)
+                        ROI_7 = left_eye_area(img, list_pos_x, list_pos_y, label, (40, 24), -1)
+                        ROI_8 = nose(img, list_pos_x, list_pos_y, label, (46, 60), -1)
+                        ROI_9 = nose_left(img, list_pos_x, list_pos_y, label, (62, 68), -1)
+                        ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (62, 68), -1)
+                        ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50), -1)
+
+                        row = np.concatenate([
+                            ROI_1, ROI_2, ROI_3, 
+                            ROI_4, ROI_5, ROI_6,
+                            ROI_7, ROI_9, ROI_9,
+                            ROI_10, ROI_11, int(label)
+                        ], axis=None)
+
+                        row_list.append(row)
+
+                elif file_name == 'test_data.csv':
+                    img = cv2.imread('../Dataset/testset/'+ df['filename'][index] +'.png') 
+                    list_pos_x = df.iloc[index, 1:69] 
+                    list_pos_y = df.iloc[index, 69:137]
+                    label = None
+
+                    ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), -1)
+                    ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), -1)
+                    ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label, (44, 30), -1)
+                    ROI_4 = left_eye(img, list_pos_x, list_pos_y, label, (40, 12), -1)
+                    ROI_5 = right_eye(img, list_pos_x, list_pos_y, label, (40, 12), -1)
+                    ROI_6 = right_eye_area(img, list_pos_x, list_pos_y, label, (40, 24), -1)
+                    ROI_7 = left_eye_area(img, list_pos_x, list_pos_y, label, (40, 24), -1)
+                    ROI_8 = nose(img, list_pos_x, list_pos_y, label, (46, 60), -1)
+                    ROI_9 = nose_left(img, list_pos_x, list_pos_y, label, (62, 68), -1)
+                    ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (62, 68), -1)
+                    ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50), -1)
                 
-                ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20))
-                ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20))
-                ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label, (44, 30))
-                ROI_4 = left_eye(img, list_pos_x, list_pos_y, label, (40, 12))
-                ROI_5 = right_eye(img, list_pos_x, list_pos_y, label, (40, 12))
-                ROI_6 = right_eye_area(img, list_pos_x, list_pos_y, label, (40, 24))
-                ROI_7 = left_eye_area(img, list_pos_x, list_pos_y, label, (40, 24))
-                ROI_8 = nose(img, list_pos_x, list_pos_y, label, (46, 60))
-                ROI_9 = nose_left(img, list_pos_x, list_pos_y, label, (62, 68))
-                ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (62, 68))
-                ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50))
+                    row = np.concatenate([
+                        ROI_1, ROI_2, ROI_3, 
+                        ROI_4, ROI_5, ROI_6,
+                        ROI_7, ROI_9, ROI_9,
+                        ROI_10, ROI_11
+                    ], axis=None)
 
-                row = np.concatenate([
-                    ROI_1, ROI_2, ROI_3, 
-                    ROI_4, ROI_5, ROI_6,
-                    ROI_7, ROI_9, ROI_9,
-                    ROI_10, ROI_11, [label_name(label)]
-                ], axis=None)
+                    row_list.append(row)
 
-                row_list.append(row)
-        writer.writerows(row_list)
+            writer.writerows(row_list)
+            print('writing '+file_name)
+            
 
 def read_data():
-    df = pd.read_csv('../Dataset/trainset/trainset.csv', encoding='utf-8')
-    return df
+    df_train = pd.read_csv('../Dataset/trainset/trainset.csv', encoding='utf-8')
+    df_test = pd.read_csv('../Dataset/testset/testset.csv', encoding='utf-8')
+    return df_train, df_test
 
     
 def feature_extraction():
-    df = read_data()
-    value = 192
-    roi_extraction(df) 
-    #display_picture(df, value)
+    df_train, df_test = read_data()
+    value = -1
+    # -1: without display + for training
+    # value: display only the image[value] ROI
+    
+    #display_picture(df_train, value, '../Dataset/trainset/')
+    roi_extraction(df_train, value, 'train_data.csv', np.shape(df_train)[0]) 
+
+    #display_picture(df_test, value, '../Dataset/testset/')
+    roi_extraction(df_test, value, 'test_data.csv', np.shape(df_test)[0]) 
+    
 
     #12 surprise
     #16 fear
