@@ -1,27 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-import os, sys, argparse, shutil, cv2, csv
-from matplotlib import pyplot as plt
+import os, sys, shutil, cv2, csv
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.linear_model import SGDClassifier 
-from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import make_pipeline
-from sklearn.datasets import load_digits
-from sklearn.metrics import confusion_matrix
-from sklearn.neighbors import KNeighborsClassifier
-import matplotlib.image as mpimg
-import timeit
 
 def label_name(label):
     label_list = ['neutral', 'angry', 'N.A', 'disgust', 'fear', 'joy', 'sadness', 'surprise']
     return label_list[label]
 
 def display_roi(img, df, index):
-    pos_x = df.iloc[index, 1:69] # [0->67] 
+    pos_x = df.iloc[index, 1:69] 
     pos_y = df.iloc[index, 69:137]
 
     for i in range(len(pos_x)):
@@ -154,7 +142,6 @@ def left_eye(img, list_pos_x, list_pos_y, label, dim, index):
     crop = img[y:y+height, x:x+length].copy()
     negative = cv2.bitwise_not(crop)
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    #_, otsu_threshold = cv2.threshold(gray.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
     resized = cv2.resize(thresh, dim)
 
@@ -179,7 +166,6 @@ def right_eye(img, list_pos_x, list_pos_y, label, dim, index):
     crop = img[y:y+height, x:x+length].copy()
     negative = cv2.bitwise_not(crop)
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    #_, otsu_threshold = cv2.threshold(gray.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
     resized = cv2.resize(thresh, dim)
 
@@ -208,7 +194,6 @@ def left_eye_area(img, list_pos_x, list_pos_y, label, dim, index):
     laplacian = cv2.Laplacian(blur, cv2.CV_64F)
     blur_2 = cv2.medianBlur(laplacian.astype('uint8'), 3)
     crop_2 = blur_2[0:int((np.shape(blur_2)[1])/2), 0:np.shape(blur_2)[0]].copy()
-    
     negative = cv2.bitwise_not(crop_2)
     resized = cv2.resize(negative, dim)
 
@@ -236,7 +221,6 @@ def right_eye_area(img, list_pos_x, list_pos_y, label, dim, index):
     laplacian = cv2.Laplacian(blur, cv2.CV_64F)
     blur_2 = cv2.medianBlur(laplacian.astype('uint8'), 3)
     crop_2 = blur_2[0:int((np.shape(blur_2)[1])/2), 0:np.shape(blur_2)[0]].copy()
-    
     negative = cv2.bitwise_not(crop_2)
     resized = cv2.resize(negative, dim)
     
@@ -259,40 +243,22 @@ def nose(img, list_pos_x, list_pos_y, label, dim, index):
     height = abs(y_point(28, list_pos_y) - y_point(33, list_pos_y))+5
 
     crop = img[y:y+height, x:x+length].copy()
-
-    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
+    clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8)) # CLAHE (Contrast Limited Adaptive Histogram Equalization)
     lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)  # convert from BGR to LAB color space
-    l, a, b = cv2.split(lab)  # split on 3 different channels
-    l2 = clahe.apply(l)  # apply CLAHE to the L-channel
+    l, a, b = cv2.split(lab)  
+    l2 = clahe.apply(l)  # apply CLAHE to the L channel
     lab = cv2.merge((l2,a,b))  # merge channels
-    contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB to BGR
-
+    contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB color space to BGR
     gray = cv2.cvtColor(contrast, cv2.COLOR_RGB2GRAY) 
-
     resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
     resized_2 = cv2.resize(resized, dim, interpolation=cv2.INTER_CUBIC)
-
-
     kernel = np.ones((3,3),np.uint8)
     erosion = cv2.erode(resized_2,kernel,iterations = 1)
-
     blur = cv2.medianBlur(erosion.astype('uint8'), 5)
     _, otsu_threshold = cv2.threshold(blur.astype('uint8'), 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     negative = cv2.bitwise_not(otsu_threshold)
-
     dilation = cv2.dilate(resized_2,kernel,iterations = 1)
     resized = cv2.resize(dilation, dim)
-
-    # convert nostrils
-    #blur_2 = cv2.GaussianBlur(dilation, (5, 5), 0)
-    #laplacian = cv2.Laplacian(blur_2, cv2.CV_64F)
-    #blur_3 = cv2.medianBlur(laplacian.astype('uint8'), 3)
-    #_, otsu_threshold = cv2.threshold(blur_3.astype('uint8'), 0, 255, cv2.THRESH_OTSU)
-    
-    #kernel = np.ones((2,2),np.uint8)
-    #opening = cv2.morphologyEx(otsu_threshold, cv2.MORPH_OPEN, kernel)
-    #closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
 
     if index != -1:
         cv2.imshow("nose: " + label_name(label), dilation)
@@ -310,26 +276,6 @@ def nose_left(img, list_pos_x, list_pos_y, label, dim, index):
     height = abs(y_point(27, list_pos_y) - y_point(30, list_pos_y))
 
     crop = img[y:y+height, x:x+length].copy()
-
-    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    #clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
-    #lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)  # convert from BGR to LAB color space
-    #l, a, b = cv2.split(lab)  # split on 3 different channels
-    #l2 = clahe.apply(l)  # apply CLAHE to the L-channel
-    #lab = cv2.merge((l2,a,b))  # merge channels
-    #contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB to BGR
-
-    #gray = cv2.cvtColor(contrast, cv2.COLOR_RGB2GRAY) 
-
-    #resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
-    #resized_2 = cv2.resize(resized, dim, interpolation=cv2.INTER_CUBIC)
-
-    #kernel = np.ones((3,3),np.uint8)
-    #erosion = cv2.erode(gray,kernel,iterations = 1) #resized2
-
-    #blur = cv2.medianBlur(erosion.astype('uint8'), 5)
-    #dilation = cv2.dilate(blur,kernel,iterations = 1) 
-
     gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY) 
     blur = cv2.GaussianBlur(gray, (7, 7), 0)
     thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
@@ -355,26 +301,6 @@ def nose_right(img, list_pos_x, list_pos_y, label, dim, index):
     height = abs(y_point(27, list_pos_y) - y_point(30, list_pos_y))
 
     crop = img[y:y+height, x:x+length].copy()
-
-    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    #clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
-    #lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)  # convert from BGR to LAB color space
-    #l, a, b = cv2.split(lab)  # split on 3 different channels
-    #l2 = clahe.apply(l)  # apply CLAHE to the L-channel
-    #lab = cv2.merge((l2,a,b))  # merge channels
-    #contrast = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)  # convert from LAB to BGR
-
-    #gray = cv2.cvtColor(contrast, cv2.COLOR_RGB2GRAY) 
-
-    #resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
-    #resized_2 = cv2.resize(resized, dim, interpolation=cv2.INTER_CUBIC)
-
-    #kernel = np.ones((3,3),np.uint8)
-    #erosion = cv2.erode(resized_2,kernel,iterations = 1) #resized2
-
-    #blur = cv2.medianBlur(erosion.astype('uint8'), 5)
-    #dilation = cv2.dilate(blur,kernel,iterations = 1) 
-
     gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY) 
     blur = cv2.GaussianBlur(gray, (7, 7), 0)
     thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 199, 5)
@@ -433,45 +359,14 @@ def mouth(img, list_pos_x, list_pos_y, label, dim, index):
         cv2.destroyAllWindows()  
     return resized
 
-def resize_ROI(img, df):
-    list_ROI = []
-
-    for index in range(len(df)):
-        list_pos_x = df.iloc[index, 1:69] # [0->67] 
-        list_pos_y = df.iloc[index, 69:137]
-        label = df.iloc[index, 137]
-    
-        #ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label)
-        #ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label)
-        #ROI_3 = between_eyebrow(img, list_pos_x, list_pos_y, label)
-        #ROI_4 = left_eye(img, list_pos_x, list_pos_y, label)
-        #ROI_5 = right_eye(img, list_pos_x, list_pos_y, label)
-        #ROI_6 = nose(img, list_pos_x, list_pos_y, label)
-        ROI_7 = mouth(img, list_pos_x, list_pos_y, label)
-        list_ROI.append(ROI_7)
-    
-    lengths = []
-    widths = []
-
-    for i in range(len(df)):
-        widths.append(len(list_ROI[i])) #largeur
-        lengths.append(len(list_ROI[i][1])) #longueur
-    mean_width = np.mean(widths)
-    mean_length = np.mean(lengths)
-    print("mean width : ", mean_width)
-    print("mean length : ", mean_length)
 
 def roi_extraction(df, index=-1, file_name='', nb_examples=0):
     '''
-    extract chosen roi
-    1. pour chaque ligne (images) 
-    2. on extrait les ROI choisi (features)
-    3. on ajoute dans un tableau une ligne pour l'image avec en colonne les images cropped
-    4. on ajoute dans un tableau le label de l'image
-    [image 0]: f1, f2, ..., fn
-    [image 0]: 4 #label
+    1. Displays ROI feature extracted at image[index] if index != -1
+    2. Save ROI features extracted into CSV file if index == -1
     '''   
 
+    ### For displaying features extracted ###
     if index != -1:
         if file_name == 'train_data.csv':
             img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
@@ -485,7 +380,6 @@ def roi_extraction(df, index=-1, file_name='', nb_examples=0):
             list_pos_x = df.iloc[index, 1:69] 
             list_pos_y = df.iloc[index, 69:137]
             label = 0
-     
         
         ROI_1 = left_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), index)
         ROI_2 = right_eyebrow(img, list_pos_x, list_pos_y, label, (94, 20), index)
@@ -499,18 +393,20 @@ def roi_extraction(df, index=-1, file_name='', nb_examples=0):
         ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (62, 68), index)
         ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50), index)
 
+    ### Extracting features for training step ###
     else:
         with open('../Dataset/'+file_name, 'w', newline='') as file:
             print('feature extraction...')
             writer = csv.writer(file, delimiter=',')
             row_list = []
-            for index in range(0, nb_examples): # 722
-                if file_name == 'train_data.csv':
+
+            for index in range(0, nb_examples): 
+                ### features from trainset ###
+                if file_name == 'features_train.csv':
                     if index not in [4, 51, 52, 206, 207, 208, 209, 210, 211, 212, 213, 214, 340, 341, 342, 343, 344]:
-                        # excluded image list (#17)
+                        # excluded image list (17 images)
                         # 4: landmarks not appropriated
                         # 51, 52: hair on face
-                        # 97, 98, 99, 100, 101, 102, 103, 104, 105
                         # 206, 207, 208, 209, 210, 211, 212, 213, 214: hair on face
                         # 340, 341, 342, 343, 344: hair on face
                         img = cv2.imread('../Dataset/trainset/'+ df['filename'][index] +'.png') 
@@ -539,7 +435,8 @@ def roi_extraction(df, index=-1, file_name='', nb_examples=0):
 
                         row_list.append(row)
 
-                elif file_name == 'test_data.csv':
+                ### features from testset ###
+                elif file_name == 'features_test.csv':
                     img = cv2.imread('../Dataset/testset/'+ df['filename'][index] +'.png') 
                     list_pos_x = df.iloc[index, 1:69] 
                     list_pos_y = df.iloc[index, 69:137]
@@ -557,6 +454,7 @@ def roi_extraction(df, index=-1, file_name='', nb_examples=0):
                     ROI_10 = nose_right(img, list_pos_x, list_pos_y, label, (62, 68), -1)
                     ROI_11 = mouth(img, list_pos_x, list_pos_y, label, (118, 50), -1)
                 
+                    # flatten each ROI_n images
                     row = np.concatenate([
                         ROI_1, ROI_2, ROI_3, 
                         ROI_4, ROI_5, ROI_6,
@@ -564,13 +462,19 @@ def roi_extraction(df, index=-1, file_name='', nb_examples=0):
                         ROI_10, ROI_11
                     ], axis=None)
 
+                    # for each flattened data, append to a list
                     row_list.append(row)
 
+            # write every rows containing flattened data into the csv file
             writer.writerows(row_list)
-            print('writing '+file_name)
+            print(file_name + ' created')
             
 
 def read_data():
+    '''
+    read trainset.csv and testset.csv to get ROI coordinates
+    return dataframe for trainset and testset
+    '''
     df_train = pd.read_csv('../Dataset/trainset/trainset.csv', encoding='utf-8')
     df_test = pd.read_csv('../Dataset/testset/testset.csv', encoding='utf-8')
     return df_train, df_test
@@ -578,32 +482,28 @@ def read_data():
     
 def feature_extraction():
     df_train, df_test = read_data()
+
+    ### set value to -1 for features extractions before training ###
+    ### set value to image number to display it and its extracted features ###
     value = -1
-    # -1: without display + for training
-    # value: display only the image[value] ROI
-    
+
+    ### uncomment to display the picture with ROI from Trainset (value must be different from -1) ###
     #display_picture(df_train, value, '../Dataset/trainset/')
-    roi_extraction(df_train, value, 'train_data.csv', np.shape(df_train)[0]) 
 
+    ### uncomment to display the picture with ROI from Testset (value must be different from -1) ###
     #display_picture(df_test, value, '../Dataset/testset/')
-    roi_extraction(df_test, value, 'test_data.csv', np.shape(df_test)[0]) 
+
+    ### feature extractions if value == -1, else it shows features extracted of the image[value] ###
+    roi_extraction(df_train, value, 'features_train.csv', np.shape(df_train)[0]) 
+
+    ### comment if value is different from -1 ###
+    roi_extraction(df_test, value, 'features_test.csv', np.shape(df_test)[0]) 
     
-
-    #12 surprise
-    #16 fear
-    #17 neutral 213 184
-    #20 degout
-    #18 angry 28 angry
-    #22 happy 31 71 183
-    # 300 cache les sourcils 213 cache coin oeil
-
-    # for the best image, equalize hist with it
-    # gray_img_eqhist=cv2.equalizeHist(gray_img)
-
 
 def main():
     feature_extraction()
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
