@@ -429,7 +429,7 @@ The recognition of emotion through images has been achieved by extracting specif
 **Scikit learn**: sklearn.svm.SVC https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
 
 **OpenCV: Image processing**
-https: // opencv-python- tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_table_of_contents_imgproc/py _table_of_contents_imgproc.html
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_table_of_contents_imgproc/py_table_of_contents_imgproc.html
 
 **Zdzisław Kowalczuk * and Piotr Chudziak**: Identification of Emotions Based on Human Facial Expressions Using a Color-Space Approach
 
