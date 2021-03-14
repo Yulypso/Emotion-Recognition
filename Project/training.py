@@ -7,6 +7,7 @@ from sklearn import svm, metrics
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
+import matplotlib.pyplot as plt
 import pickle
 
 
@@ -51,7 +52,13 @@ def f_svm(data, label):
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
     print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print(confusion_matrix(y_test, y_pred))
+    unique_label = np.unique([y_test, y_pred])
+    cmtx = pd.DataFrame(
+        confusion_matrix(y_test, y_pred, labels=unique_label), 
+        index=['actual:{:}'.format(x) for x in unique_label], 
+        columns=['pred:{:}'.format(x) for x in unique_label]
+    )
+    print(cmtx)
     if os.path.exists('../Dataset/model.pickle'):
         os.remove('../Dataset/model.pickle')
     save_pickle(clf, '../Dataset/model.pickle')
@@ -77,7 +84,13 @@ def f_knn(data, label):
     knn_classifiers[knn_index].fit(X_train, y_train)
     y_pred = knn_classifiers[knn_index].predict(X_test)
     print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print(confusion_matrix(y_test, y_pred))
+    unique_label = np.unique([y_test, y_pred])
+    cmtx = pd.DataFrame(
+        confusion_matrix(y_test, y_pred, labels=unique_label), 
+        index=['actual:{:}'.format(x) for x in unique_label], 
+        columns=['pred:{:}'.format(x) for x in unique_label]
+    )
+    print(cmtx)
 
     # display graph
     plt.title('Taux de reconnaissance en fonction du nombre de voisins K')
