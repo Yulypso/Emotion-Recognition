@@ -1,5 +1,6 @@
 Documents
-Dataset
+Dataset/trainset/*.png
+Dataset/testset/*.png
 .vscode
 .venv
 .DS_Store
