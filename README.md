@@ -33,9 +33,18 @@ __Note__: In Visual Studio Code, don't forget to select the correct Python inter
 
 <br/>
 
+__Trainset and testset images__
+
+1. Download trainset and testset images: [here](https://mega.nz/file/2LonjKTS#s8rwq-P-SDHy8eA7V_aMyfoj2SUv-1OxjFQM1ZZkGL8)
+2. Move download images to their respective folders 
+   - Dataset/trainset/[downloaded images]
+   - Dataset/testset/[downloaded images]
+
+<br/>
+
 __Run the code__
 ```bash
-> cd project/bitmapProcessing
+> cd project/Emotion-Recognition
 
 # feature extractions
 > python3 feature_extraction.py
